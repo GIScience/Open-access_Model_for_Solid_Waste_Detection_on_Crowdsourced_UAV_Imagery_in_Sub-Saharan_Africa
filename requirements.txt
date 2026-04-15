@@ -1,0 +1,23 @@
+﻿geopandas>=0.14
+rasterio>=1.3
+shapely>=2.0
+numpy>=1.24
+pandas>=2.0
+tqdm>=4.65
+Pillow>=10.0
+scikit-learn>=1.3
+requests>=2.31
+pyproj>=3.5
+ultralytics>=8.0
+torch>=2.0          # install separately via https://pytorch.org for GPU support
+scipy>=1.11         # used in correlation analysis
+matplotlib>=3.8     # used in analysis / plotting
+seaborn>=0.13       # used in scatter plots
+folium>=0.15        # used in interactive maps
+geopy>=2.4          # optional: reverse-geocoding in 01_query_oam_catalog.py (--geocode)
+pyarrow>=14.0       # required by geopandas.read_parquet (africa_geodata.parquet)
+
+# -- Optional: vegetation + water segmentation (04_predict_sam.py) ----------
+# samgeo wraps SAM / Grounding-DINO; model weights download from HuggingFace
+# automatically on first run.  Requires PyTorch with CUDA (matching version).
+# pip install samgeo

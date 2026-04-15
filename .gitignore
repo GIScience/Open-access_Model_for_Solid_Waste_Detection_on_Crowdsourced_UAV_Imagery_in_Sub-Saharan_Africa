@@ -1,0 +1,72 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+.venv/
+venv/
+env/
+.env
+
+# --- YOLO / PyTorch weights (downloaded at runtime, do not commit) ---
+# *.pt
+
+# --- Temporary one-time dev scripts (delete before final release) ---
+_dev/
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+# !03_analysis/tutorial.ipynb
+
+# --- Large data / rasters ---
+# data/imagery/*
+# !data/imagery/.gitkeep
+# data/auxiliary/*
+# !data/auxiliary/.gitkeep
+# data/dataset/*
+# !data/dataset/.gitkeep
+# data/models/*
+# !data/models/.gitkeep
+# data/predictions/green/*
+# !data/predictions/green/.gitkeep
+# data/predictions/waste/*
+# !data/predictions/waste/.gitkeep
+# data/results/*
+# !data/results/.gitkeep
+# data/oam_AOI.gpkg
+# top-level catalog files are large but committed once generated:
+# data/oam_catalog.gpkg 
+
+# *.tif
+# *.tiff
+# *.vrt
+# *.aux.xml
+# *.pgw
+
+# --- GeoPackage runtime lock files ---
+*.gpkg-shm
+*.gpkg-wal
+
+# --- Model weights ---
+# *.pt
+# *.pth
+# runs/
+
+# --- Logs & outputs ---
+*.log
+# *.csv
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
