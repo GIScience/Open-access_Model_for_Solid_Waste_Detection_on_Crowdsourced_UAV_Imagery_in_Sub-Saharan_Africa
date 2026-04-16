@@ -3,6 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Model](https://img.shields.io/badge/Model-YOLO11x--cls-orange)](https://docs.ultralytics.com/models/yolo11/)
+[![DOI](https://zenodo.org/badge/1204752062.svg)](https://doi.org/10.5281/zenodo.19609437)
 
 A reproducible deep-learning pipeline for detecting and quantifying solid waste in urban and peri-urban settlements across Sub-Saharan Africa, using crowdsourced UAV imagery from [OpenAerialMap (OAM)](https://openaerialmap.org/).
 
