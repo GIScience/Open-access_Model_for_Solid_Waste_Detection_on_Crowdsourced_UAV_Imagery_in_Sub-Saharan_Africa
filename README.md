@@ -1,4 +1,4 @@
-# Open-access model for detecting openly dumped dispersed solid waste from crowdsourced UAV imagery in Sub-Saharan Africa
+# Open-access model for detecting openly dumped dispersed municipal solid waste from crowdsourced UAV imagery in Sub-Saharan Africa
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
