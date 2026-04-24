@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env python3
 """
-03_analysis/01_plot_results.py
+03_analysis/02_plot_results.py
 =====================================
 Produce the core paper figures from the final merged GPKG or CSV.
 
@@ -8,18 +8,16 @@ Input data
 ----------
 The input file must contain the following columns:
 
-  - waste_pct  or  rswci             -- Relative Solid Waste Contamination Index (%)
-  - shdi       or  SHDI              -- Subnational Human Development Index
-  - k_complexity_weighted            -- Street block complexity (weighted)
-  - worldpop_population_un_density_hectare_weighted  -- Population density [people/ha]
-  - green_pct                        -- Vegetation coverage (%) -- for bar overlay
-  - country                          -- for bar chart colour (optional)
+    - waste_pct  or  oddmswc             -- Openly Dumped Dispersed Municipal Solid Waste Contamination Index (%)
+    - shdi       or  SHDI                -- Subnational Human Development Index
+    - k_complexity_weighted              -- Street block complexity (weighted)
+    - worldpop_population_un_density_hectare_weighted  -- Population density [people/ha]
+    - country                            -- for bar chart colour (optional)
 
 Figures generated
 -----------------
-1. waste_green_bar.png
-   RSWCI bars ordered by decreasing value, with greenery fraction overlaid
-   as a line on a secondary axis.  Bars are coloured by AEZ zone (DN column)
+1. waste_bar.png
+   ODDMSWC bars ordered by decreasing value. Bars are coloured by AEZ zone (DN column)
    if present, otherwise by country.
 
 2. three_panel_analysis.png
@@ -29,7 +27,7 @@ Figures generated
 
 Usage
 -----
-    python 03_analysis/01_plot_results.py --input data/AOI.gpkg --outdir results/figures/
+    python 03_analysis/02_plot_results.py --input data/AOI.gpkg --outdir results/figures/
 """
 
 from __future__ import annotations
@@ -151,68 +149,44 @@ def _fit_and_ci(ax, x: np.ndarray, y: np.ndarray, xscale_log: bool = True) -> No
 
 # ---------------------------------------------------------------------------
 # Figure 1: RSWCI bar chart with greenery overlay
+# Figure 1: ODDMSWC bar chart with greenery overlay
 # ---------------------------------------------------------------------------
 
-def plot_waste_with_green_overlay(df: pd.DataFrame, y_col: str, outdir: Path) -> None:
+def plot_waste_bar(df: pd.DataFrame, y_col: str, outdir: Path) -> None:
     """
-    Bar chart of waste_pct (descending) with green_pct overlaid as a line on
-    a secondary y-axis.  Matches plots.ipynb plot_waste_with_green_overlay().
+    Bar chart of waste_pct (descending). No greenery overlay.
     """
-    green_col = pick_col(df, ["green_pct"])
-
     df_s = df.sort_values(y_col, ascending=False).copy()
     n = len(df_s)
-
-    # Tick labels from name / oam_id
     id_col = pick_col(df_s, ["name", "oam_id", "file_id"])
     x_labels = list(df_s[id_col]) if id_col else [str(i) for i in range(n)]
-
     colours = _bar_colours(df_s)
-
     fig, ax1 = plt.subplots(figsize=(14, 8), facecolor="white")
     ax1.set_facecolor("white")
-
     ax1.bar(range(n), df_s[y_col], color=colours,
             edgecolor="black", linewidth=0.6, width=0.65, zorder=2)
-    ax1.set_ylabel("Relative solid waste contamination index [%]", fontsize=12, labelpad=15)
+    ax1.set_ylabel("Openly dumped dispersed municipal solid waste contamination index [%]", fontsize=12, labelpad=15)
     ax1.set_xticks(range(n))
     ax1.set_xticklabels(x_labels, rotation=90, ha="center", fontsize=9)
     ax1.spines["top"].set_visible(False)
     ax1.tick_params(axis="both", labelsize=11)
-
-    legend_elements: list = []
-
     # Country legend if no DN
+    legend_elements = []
     if "DN" not in df_s.columns:
         country_col = pick_col(df_s, ["country", "new_country"])
         if country_col:
-            seen: dict[str, str] = {}
+            seen = {}
             for c, col in zip(df_s[country_col], colours):
                 seen.setdefault(str(c), col)
             legend_elements = [
                 mpatches.Patch(facecolor=col, edgecolor="black", label=name)
                 for name, col in seen.items()
             ]
-
-    if green_col is not None:
-        ax2 = ax1.twinx()
-        ax2.plot(range(n), df_s[green_col], color="#006400",
-                 linewidth=2.5, marker="o", markersize=4, zorder=1)
-        ax2.set_ylabel("Vegetation coverage [%]", fontsize=12, labelpad=15)
-        ax2.tick_params(axis="y", labelsize=11)
-        ax2.spines["top"].set_visible(False)
-        max_green = df_s[green_col].max()
-        ax2.set_ylim(0, max(max_green * 1.1 if pd.notna(max_green) else 100, 100))
-        legend_elements.append(
-            Line2D([0], [0], color="#006400", lw=2, marker="o", label="Vegetation coverage")
-        )
-
     if legend_elements:
         ax1.legend(handles=legend_elements, loc="upper right",
                    frameon=False, fontsize=10, title_fontsize=11)
-
     fig.tight_layout()
-    out = outdir / "waste_green_bar.png"
+    out = outdir / "waste_bar.png"
     fig.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f" Saved: {out}")
@@ -225,6 +199,7 @@ def plot_waste_with_green_overlay(df: pd.DataFrame, y_col: str, outdir: Path) ->
 def plot_scatter_panels(df: pd.DataFrame, y_col: str, outdir: Path) -> None:
     """
     Three panels (SHDI | block complexity | pop density) vs RSWCI.
+        Three panels (SHDI | block complexity | pop density) vs ODDMSWC.
     All x-axes are log scale.  Matches plots.ipynb cell 74.
     """
     shdi_col = pick_col(df, ["shdi", "SHDI"])
@@ -290,7 +265,8 @@ def plot_scatter_panels(df: pd.DataFrame, y_col: str, outdir: Path) -> None:
         ax.set_xlabel(label, fontsize=20, labelpad=12)
 
         if idx == 0:
-            ax.set_ylabel("Relative solid waste contamination index",
+            ax.set_ylabel("openly dumped dispersed municipal solid waste",
+                ax.set_ylabel("Openly dumped dispersed municipal solid waste contamination index",
                           fontsize=20, labelpad=12)
         else:
             ax.tick_params(axis="y", left=False, labelleft=False)
@@ -321,11 +297,10 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Required columns in input file:\n"
-            "  waste_pct / rswci\n"
+            "  waste_pct / oddmswc\n"
             "  shdi\n"
             "  k_complexity_weighted\n"
             "  worldpop_population_un_density_hectare_weighted\n"
-            "  green_pct  (for bar overlay)\n"
         ),
     )
     parser.add_argument(
@@ -355,16 +330,16 @@ def main() -> None:
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    y_col = pick_col(df, ["waste_pct", "rswci", "areal_fraction"])
+    y_col = pick_col(df, ["waste_pct", "oddmswc", "areal_fraction"])
     if y_col is None:
         raise ValueError(
-            "No RSWCI column found. Expected: waste_pct, rswci, or areal_fraction. "
+            "No ODDMSWC column found. Expected: waste_pct, oddmswc, or areal_fraction. "
             f"Available: {list(df.columns)}"
         )
 
     print(f"Loaded {len(df)} AOIs from {in_path}  (y={y_col})")
 
-    plot_waste_with_green_overlay(df, y_col, outdir)
+    plot_waste_bar(df, y_col, outdir)
     plot_scatter_panels(df, y_col, outdir)
 
     print(f"\nFigures saved to: {outdir}")

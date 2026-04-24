@@ -1,13 +1,14 @@
+
 # Open-access model for detecting openly dumped dispersed municipal solid waste from crowdsourced UAV imagery in Sub-Saharan Africa
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Model](https://img.shields.io/badge/Model-YOLO11x--cls-orange)](https://docs.ultralytics.com/models/yolo11/)
-[![DOI](https://zenodo.org/badge/1204752062.svg)](https://doi.org/10.5281/zenodo.19609437)
 
-A reproducible deep-learning pipeline for detecting and quantifying solid waste in urban and peri-urban settlements across Sub-Saharan Africa, using crowdsourced UAV imagery from [OpenAerialMap (OAM)](https://openaerialmap.org/).
 
-A fine-tuned **YOLO11x-cls** classifier is applied to a 5 m × 5 m tile grid over each study region. The fraction of tiles predicted as *waste* is reported as the **Relative Solid Waste Contamination Index (RSWCI)**. Each region is further characterised by street-network complexity and population density, both derived from the [MillionNeighborhoods Africa dataset](https://www.millionneighborhoods.africa/).
+A reproducible deep-learning pipeline for detecting and quantifying openly dumped dispersed municipal solid waste in urban and peri-urban settlements across Sub-Saharan Africa, using crowdsourced UAV imagery from [OpenAerialMap (OAM)](https://openaerialmap.org/).
+
+A fine-tuned **YOLO11x-cls** classifier is applied to a 5 m × 5 m tile grid over each study region. The fraction of tiles predicted as *waste* is reported as the **Openly Dumped Dispersed Municipal Solid Waste Contamination (ODDMSWC)**. Each region is further characterised by street-network complexity and population density, both derived from the [MillionNeighborhoods Africa dataset](https://www.millionneighborhoods.africa/).
 
 **Study coverage:** 29 regions across 10 Sub-Saharan African countries.
 
@@ -15,9 +16,9 @@ A fine-tuned **YOLO11x-cls** classifier is applied to a 5 m × 5 m tile grid ove
 
 ## Abstract
 
-Managing municipal solid waste in rapidly urbanizing Sub-Saharan Africa remains challenging due to dispersed informal dumping and limited high-resolution datasets for spatial monitoring. We present an open-access deep learning model for automated detection of openly dumped dispersed solid waste via crowdsourced UAV imagery, trained and evaluated across 29 regions in 10 countries, encompassing diverse environmental contexts. A deep learning model trained on manually annotated image tiles achieved excellent performance in detecting openly dumped dispersed solid waste across all study regions. Predicted distributions reveal heterogeneous accumulation patterns, ranging from localized hotspots—often along waterways, where waste can exacerbate flood and public health risks—to more dispersed litter across urban areas. Waste accumulation is most strongly associated with population density and indicators of lack of local infrastructure access, whereas its relationship with broader measures of regional development is weaker, highlighting the importance of fine-scale data for understanding localized waste dynamics. By releasing the model, this study provides a ready-to-use tool for UAV imagery collected by municipalities and local mapping communities, enabling openly dumped dispersed solid waste monitoring without extensive technical expertise. This approach empowers local practitioners to convert UAV imagery into actionable insights, supporting targeted interventions and improved municipal solid waste management across Sub-Saharan Africa. 
+Managing openly dumped dispersed municipal solid waste in rapidly urbanizing Sub-Saharan Africa remains challenging due to dispersed informal dumping and limited high-resolution datasets for spatial monitoring. We present an open-access deep learning model for automated detection of openly dumped dispersed municipal solid waste via crowdsourced UAV imagery, trained and evaluated across 29 regions in 10 countries, encompassing diverse environmental contexts. A deep learning model trained on manually annotated 5 m × 5 m tiles achieved excellent performance in detecting openly dumped dispersed municipal solid waste across all study regions. Predicted distributions reveal heterogeneous waste accumulation patterns, ranging from localized hotspots—often along waterways, where waste can exacerbate flood and public health risks—to more dispersed litter across urban areas. Waste accumulation is most strongly associated with population density and indicators of lack of local infrastructure access, whereas its relationship with broader measures of regional development is weaker, highlighting the importance of fine-scale data for understanding localized waste dynamics. By releasing the model, this study provides a ready-to-use tool for UAV imagery collected by municipalities and local mapping communities, enabling openly dumped dispersed municipal solid waste monitoring without extensive technical expertise. This approach empowers local practitioners to convert UAV imagery into actionable insights, supporting targeted interventions and improved municipal solid waste management across Sub-Saharan Africa.
 
-**Keywords:** Municipal Solid Waste · Open Dumping · OpenAerialMap · Crowdsourced UAV Imagery · Sub-Saharan Africa · Computer Vision
+**Keywords:** Municipal Solid Waste, Open dumping, OpenAerialMap, Crowdsourced UAV Imagery, Sub-Saharan Africa, Computer Vision
 
 ---
 
@@ -35,7 +36,7 @@ Managing municipal solid waste in rapidly urbanizing Sub-Saharan Africa remains 
      - [Download Auxiliary Data](#14-download-auxiliary-data)
    - [`02_model_training/`](#02_model_training)
      - [Train Waste Classifier](#21-train-waste-classifier)
-     - [Run Waste and Greenery Inference](#22-run-waste-and-greenery-inference)
+
    - [`03_analysis/`](#03_analysis)
      - [Calculate AOI Metrics](#31-calculate-aoi-metrics)
      - [Plot Results](#32-plot-results)
@@ -58,10 +59,10 @@ waste-detection-ssa/
 |
 +-- 02_model_training/
 |   +-- 01_train_waste_classification.py  <- fine-tune YOLO11x-cls
-|   +-- 02_predict.py                     <- add pred_class/confidence/green_pct to tile
+|   +-- 02_predict.py                     <- add pred_class/confidence to tile
 |
 +-- 03_analysis/
-|   +-- 01_calculate_aoi_metrics.py    <- compute RSWCI + join all metrics -> data/AOI.gpkg
+|   +-- 01_calculate_aoi_metrics.py    <- compute ODDMSWC + join all metrics -> data/AOI.gpkg
 |   +-- 02_plot_results.py             <- bar charts, scatter panels
 |   +-- tutorial.ipynb                 <- end-to-end interactive walkthrough
 |
@@ -73,13 +74,13 @@ waste-detection-ssa/
 |   +-- tiles/                         <- tile grids: {oam_id}_tiles.gpkg
 |   |                                     columns: tile_id, oam_id, row, col,
 |   |                                              filename, label [, pred_class,
-|   |                                              confidence, sam_greenery_pct, pred_class_green]
+|   |                                              confidence]
 |   +-- dataset/                       <- YOLO PNG crops (gitignored)
 |   +-- auxiliary/
 |   |   +-- africa_geodata.parquet     <- MillionNeighborhoods Africa
 |   |   +-- shdi_national.csv          <- SHDI
 |   +-- predictions/
-|   |   +-- green/                     <- SAM greenery polygons: {oam_id}_green.gpkg
+
 |   +-- results/                       <- CSV summaries, figures, evaluation reports
 |
 +-- requirements.txt
@@ -182,8 +183,8 @@ pip install -r requirements.txt
         |
         v
 01_train_waste_classification.py  →  data/models/<n>/weights/best.pt
-02_predict.py                     →  data/tiles/*_tiles.gpkg  (+ pred_class, confidence, sam_greenery_pct, pred_class_green)
-                                     data/predictions/green/*_green.gpkg
+02_predict.py                     →  data/tiles/*_tiles.gpkg  (+ pred_class, confidence)
+
         |
         v
 03_analysis/01_calculate_aoi_metrics.py  →  data/AOI.gpkg
@@ -305,11 +306,11 @@ python 02_model_training/01_train_waste_classification.py
 
 ---
 
-#### 2.2 Run Waste and Greenery Inference
+
 
 Runs the trained YOLO waste-detection model and the pre-trained SAM 3 model over all study scenes.
 
-**Waste classification works at tile level** — YOLO scores each 5 × 5 m tile as *waste* or *background*. Tiles are cropped on the fly from the source GeoTIFF. SAM processes the full scene in 2048 × 2048 px windows and produces polygon outputs for greenery coverage.
+**Waste classification works at tile level** — YOLO scores each 5 × 5 m tile as *waste* or *background*. Tiles are cropped on the fly from the source GeoTIFF.
 
 ```bash
 # Step 1 — waste classification
@@ -322,17 +323,17 @@ python 02_model_training/02_predict.py \
 YOLO confidence scores are used to mark each tile as waste or background. The result is written as a `pred_class` column in the corresponding `_tiles.gpkg`.
 
 ```bash
-# Step 2 — greenery prediction
+
 python 02_model_training/02_predict.py \
     --imagery-dir data/imagery/ \
     --tiles-dir   data/tiles/ \
     --model       02_model_training/checkpoints/best.pt \
-    --sam         greenery
+
 ```
 
-Meta SAM 3 segments each scene in 2048 × 2048 px windows using the text prompt `"trees, bushes, vegetation"`. The resulting polygons are saved to `data/predictions/green/<oam_id>_green.gpkg` and intersected with the tile grid: tiles where SAM polygons cover ≥ 25% of the tile area are marked green. The result is written as a `pred_class_green` column in the corresponding `_tiles.gpkg`.
 
-**Outputs:** `data/tiles/*_tiles.gpkg` (+ `pred_class`, `pred_class_green`) · `data/predictions/green/*_green.gpkg`
+
+**Outputs:** `data/tiles/*_tiles.gpkg` (+ `pred_class`)
 
 ---
 
@@ -340,16 +341,12 @@ Meta SAM 3 segments each scene in 2048 × 2048 px windows using the text prompt 
 
 #### 3.1 Calculate AOI Metrics
 
-Reads tile GeoPackages from `data/tiles/`, computes RSWCI from the waste classifier predictions, joins green coverage from SAM polygon outputs, adds MillionNeighborhoods urban metrics via a coverage-weighted spatial join, and writes the final `data/AOI.gpkg`.
+Reads tile GeoPackages from `data/tiles/`, computes ODDMSWC from the waste classifier predictions, adds MillionNeighborhoods urban metrics via a coverage-weighted spatial join, and writes the final `data/AOI.gpkg`.
 
-**RSWCI** — fraction of tiles classified as waste by the YOLO model:
+
+**ODDMSWC** — fraction of tiles classified as waste by the YOLO model:
 ```
 waste_pct = N(pred_class == "waste") / N(tiles) × 100
-```
-
-**Green coverage** — fraction of tiles classified as green by SAM:
-```
-green_pct = N(pred_class_green == "green") / N(tiles) × 100
 ```
 
 Both MillionNeighborhoods metrics are aggregated to AOI level as a **coverage-fraction-weighted mean**:
@@ -365,8 +362,7 @@ SHDI is joined at country level using the latest available year per country.
 
 | Column | Description |
 |---|---|
-| `waste_pct` | RSWCI (%) |
-| `green_pct` | Vegetation coverage (%) |
+| `waste_pct` | ODDMSWC (%) |
 | `k_complexity_weighted` | Coverage-weighted street-network complexity |
 | `worldpop_population_un_density_hectare_weighted` | Coverage-weighted population density (persons/ha) |
 | `shdi` | Sub-national HDI |
@@ -383,8 +379,7 @@ python 03_analysis/01_calculate_aoi_metrics.py
 
 Produces two output figures from `data/AOI.gpkg`:
 
-1. **RSWCI bar chart** (`waste_green_bar.png`) — regions ordered by decreasing `waste_pct`, coloured by AEZ zone (`DN` column) if present, otherwise by `country`. Vegetation coverage (`green_pct`) overlaid as a line on a secondary y-axis.
-2. **Three-panel scatter** (`three_panel_analysis_highres.png`) — RSWCI vs `shdi` (left), `k_complexity_weighted` (middle), and `worldpop_population_un_density_hectare_weighted` (right). Each panel uses a log-scaled x-axis with an OLS regression line, 95% confidence band, and Spearman ρ annotation.
+ **Three-panel scatter** (`three_panel_analysis_highres.png`) — ODDMSWC vs `shdi` (left), `k_complexity_weighted` (middle), and `worldpop_population_un_density_hectare_weighted` (right). Each panel uses a log-scaled x-axis with an OLS regression line, 95% confidence band, and Spearman ρ annotation.
 
 ```bash
 python 03_analysis/02_plot_results.py \
@@ -392,7 +387,7 @@ python 03_analysis/02_plot_results.py \
     --outdir data/results/figures/
 ```
 
-**Outputs:** `data/results/figures/waste_green_bar.png` · `data/results/figures/three_panel_analysis_highres.png`
+**Outputs:**  `data/results/figures/three_panel_analysis_highres.png`
 
 <!-- **`03_analysis/tutorial.ipynb`**
 

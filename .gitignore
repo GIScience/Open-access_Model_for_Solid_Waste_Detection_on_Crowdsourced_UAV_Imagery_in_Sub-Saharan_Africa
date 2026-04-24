@@ -36,8 +36,10 @@ _dev/
 # !data/predictions/green/.gitkeep
 # data/predictions/waste/*
 # !data/predictions/waste/.gitkeep
-# data/results/*
-# !data/results/.gitkeep
+# Ignore all results figures and plots, but keep code
+data/results/figures/*
+data/results/plots/*
+!data/results/.gitkeep
 # data/oam_AOI.gpkg
 # top-level catalog files are large but committed once generated:
 # data/oam_catalog.gpkg 

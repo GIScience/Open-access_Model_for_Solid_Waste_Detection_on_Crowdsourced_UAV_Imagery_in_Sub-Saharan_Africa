@@ -16,8 +16,3 @@ seaborn>=0.13       # used in scatter plots
 folium>=0.15        # used in interactive maps
 geopy>=2.4          # optional: reverse-geocoding in 01_query_oam_catalog.py (--geocode)
 pyarrow>=14.0       # required by geopandas.read_parquet (africa_geodata.parquet)
-
-# -- Optional: vegetation + water segmentation (04_predict_sam.py) ----------
-# samgeo wraps SAM / Grounding-DINO; model weights download from HuggingFace
-# automatically on first run.  Requires PyTorch with CUDA (matching version).
-# pip install samgeo

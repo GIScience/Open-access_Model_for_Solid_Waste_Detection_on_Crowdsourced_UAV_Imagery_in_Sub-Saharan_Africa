@@ -2,29 +2,22 @@
 """
 03_analysis/01_calculate_aoi_metrics.py
 =======================================
-Compute per-AOI RSWCI, green coverage, and weighted urban metrics,
+Compute per-AOI ODDMSWC and weighted urban metrics,
 then write the final ``data/AOI.gpkg`` used in all downstream analysis.
 
 This is the single script that brings all inference streams together:
-  - Tile GeoPackages from ``02_predict.py`` (pred_class, pred_class_green columns)
-  - MillionNeighborhoods Africa parquet (urban morphology)
-  - OAM catalog (AOI footprint geometries)
-  - Global Data Lab Subnational HDI (auto-downloaded from Zenodo)
+  - Tile GeoPackages from ``02_predict.py`` (pred_class column set
+    by ``02_predict.py``).
+  - MillionNeighborhoods Africa parquet (urban morphology).
+  - OAM catalog (AOI footprint geometries).
+  - Global Data Lab Subnational HDI (auto-downloaded from Zenodo).
 
-RSWCI
+ODDMSWC
 -----
     waste_pct = N(pred_class == "waste") / N(tiles) * 100
 
     Waste classification is the raw YOLO model output (pred_class column set
     by ``02_predict.py``).
-
-Green coverage
---------------
-    green_pct = N(pred_class_green == "green") / N(tiles) * 100
-
-    Tiles are marked green by ``02_predict.py --sam greenery`` when the SAM
-    polygon covers >= 25 % of the tile area (pred_class_green column in the
-    tile GeoPackage).
 
 Urban morphology weighting
 ---------------------------
@@ -37,8 +30,7 @@ Output columns in data/AOI.gpkg
 --------------------------------
   oam_id
   geometry                                         AOI footprint (WGS-84)
-  waste_pct                                        RSWCI (%)
-  green_pct                                        vegetation coverage (%)
+    waste_pct                                        ODDMSWC (%)
   k_complexity_weighted                            weighted street-network complexity
   worldpop_population_un_density_hectare_weighted  weighted pop density [persons/ha]
   shdi                                             Subnational HDI
@@ -208,7 +200,7 @@ def _coverage_weighted_mean(values: np.ndarray, weights: np.ndarray) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Tile-based RSWCI + green coverage
+# Tile-based ODDMSWC
 # ---------------------------------------------------------------------------
 
 def _compute_rswci_from_tiles(
@@ -216,7 +208,7 @@ def _compute_rswci_from_tiles(
 ) -> pd.DataFrame:
     """
     Scan *tiles_dir* for ``*_tiles.gpkg`` files produced by ``02_predict.py``,
-    compute per-AOI RSWCI from the YOLO waste predictions, and return a
+    compute per-AOI ODDMSWC from the YOLO waste predictions, and return a
     DataFrame with columns::
 
         oam_id, waste_pct, crs, minx, miny, maxx, maxy
@@ -244,17 +236,9 @@ def _compute_rswci_from_tiles(
         n_waste = int((gdf["pred_class"] == "waste").sum()) if "pred_class" in gdf.columns else 0
         bounds  = gdf.total_bounds  # [minx, miny, maxx, maxy]
 
-        # green_pct from pred_class_green written by 02_predict.py --sam greenery
-        if "pred_class_green" in gdf.columns:
-            n_green = int((gdf["pred_class_green"] == "green").sum())
-            green_pct = round(n_green / total * 100, 4) if total else 0.0
-        else:
-            green_pct = float("nan")
-
         rec: dict = dict(
             oam_id    = oam_id,
             waste_pct = round(n_waste / total * 100, 4) if total else 0.0,
-            green_pct = green_pct,
             crs       = str(gdf.crs),
             minx=bounds[0], miny=bounds[1],
             maxx=bounds[2], maxy=bounds[3],
@@ -268,7 +252,7 @@ def _compute_rswci_from_tiles(
     df = pd.DataFrame(records)
     print(
         f"  {len(df)} AOIs  "
-        f"(mean RSWCI={df['waste_pct'].mean():.2f}%  "
+        f"(mean ODDMSWC={df['waste_pct'].mean():.2f}%  "
         f"range={df['waste_pct'].min():.2f}\u2013{df['waste_pct'].max():.2f}%)"
     )
     return df
@@ -352,14 +336,14 @@ def calculate_aoi_metrics(
     output:     Path,
 ) -> gpd.GeoDataFrame:
     """
-    Compute RSWCI and green coverage from tile GPKGs (pred_class and
-    pred_class_green columns written by 02_predict.py), join all auxiliary
-    metrics, and write data/AOI.gpkg.  Returns the GeoDataFrame.
+    Compute ODDMSWC and weighted urban metrics from tile GPKGs (pred_class
+    column written by 02_predict.py), join all auxiliary metrics, and write
+    data/AOI.gpkg.  Returns the GeoDataFrame.
     """
 
-    # 1 ── RSWCI + bounding boxes from tile GPKGs ───────────────────────────
-    print(f"\n[1/5] Computing RSWCI from tiles: {tiles_dir}")
-    rswci_df = _compute_rswci_from_tiles(tiles_dir)
+    # 1 ── ODDMSWC + bounding boxes from tile GPKGs ───────────────────────────
+    print(f"\n[1/5] Computing ODDMSWC from tiles: {tiles_dir}")
+    rswci_df = _compute_rswci_from_tiles(tiles_dir)  # ODDMSWC
     if rswci_df.empty:
         raise RuntimeError(f"No valid tile GPKGs found in: {tiles_dir}")
     print(f"  {len(rswci_df)} valid AOIs")
@@ -395,7 +379,6 @@ def calculate_aoi_metrics(
         row: dict = {
             "oam_id":    oam_id,
             "waste_pct": r["waste_pct"],
-            "green_pct": r["green_pct"],   # from pred_class_green in tile GPKG
         }
 
         bounds  = (r["minx"], r["miny"], r["maxx"], r["maxy"])
@@ -419,7 +402,7 @@ def calculate_aoi_metrics(
 
     merged = cat[["oam_id", "geometry"]].merge(df, on="oam_id", how="inner")
     if merged.empty:
-        print("  WARNING: no AOIs matched between RSWCI CSV and catalog.")
+        print("  WARNING: no AOIs matched between ODDMSWC CSV and catalog.")
         return gpd.GeoDataFrame()
 
     # SHDI join — by country column from catalog
@@ -472,7 +455,7 @@ def calculate_aoi_metrics(
 
     # Column order — geometry always last so GPKG writes cleanly
     ordered = [
-        "oam_id", "waste_pct", "green_pct",
+        "oam_id", "waste_pct",
     ]
     ordered += [f"{c}_weighted" for c in WEIGHTED_COLS if f"{c}_weighted" in merged.columns]
     if "shdi" in merged.columns:
@@ -496,7 +479,7 @@ def calculate_aoi_metrics(
     # Summary
     print(f"\n{'=' * 60}")
     summary_cols = [c for c in [
-        "waste_pct", "green_pct",
+        "waste_pct",
         "k_complexity_weighted",
         "worldpop_population_un_density_hectare_weighted",
     ] if c in gdf_out.columns]
@@ -521,7 +504,7 @@ def calculate_aoi_metrics(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Calculate per-AOI RSWCI and all auxiliary metrics, then write "
+            "Calculate per-AOI ODDMSWC and all auxiliary metrics, then write "
             "data/AOI.gpkg from the MillionNeighborhoods urban morphology parquet."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

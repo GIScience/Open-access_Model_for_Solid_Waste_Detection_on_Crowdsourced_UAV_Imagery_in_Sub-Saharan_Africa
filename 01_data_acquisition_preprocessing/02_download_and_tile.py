@@ -316,7 +316,6 @@ def create_tile_grid(
                 # added by 02_predict.py after inference:
                 # "pred_class":  None,
                 # "confidence":  None,
-                # "green_pct":   None,
                 # "water_pct":   None,
             },
             geometry=geoms,

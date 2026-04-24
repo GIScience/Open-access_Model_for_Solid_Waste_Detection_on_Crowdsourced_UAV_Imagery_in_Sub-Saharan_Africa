@@ -2,7 +2,7 @@
 """
 02_model_training/01_train_waste_classification.py
 ===================================================
-Fine-tune YOLO11x-cls on the labeled solid waste / background tile dataset.
+Fine-tune YOLO11x-cls on the labeled openly dumped dispersed municipal solid waste / background tile dataset.
 
 Usage
 -----
