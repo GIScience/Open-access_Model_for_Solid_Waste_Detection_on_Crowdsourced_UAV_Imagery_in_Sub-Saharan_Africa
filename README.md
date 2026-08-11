@@ -4,7 +4,6 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Model](https://img.shields.io/badge/Model-YOLO11x--cls-orange)](https://docs.ultralytics.com/models/yolo11/)
-![Example image of MSW detection on UAV Imagery](data/Example_image_MSW_detection_on_UAV_Imagery.png)
 
 A reproducible deep-learning pipeline for detecting and quantifying openly dumped dispersed municipal solid waste in urban and peri-urban settlements across Sub-Saharan Africa, using crowdsourced UAV imagery from [OpenAerialMap (OAM)](https://openaerialmap.org/).
 
@@ -45,6 +44,9 @@ Managing openly dumped dispersed municipal solid waste in rapidly urbanizing Sub
 7. [License](#license)
 
 ---
+
+## Examples
+![Example image of MSW detection on UAV Imagery](data/Example_image_MSW_detection_on_UAV_Imagery.png)
 
 ## Repository Structure
 
