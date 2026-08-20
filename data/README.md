@@ -20,7 +20,7 @@ data/
 |   +-- <oam_id>.tif
 |
 +-- tiles/                     <- tile grids, one GPKG per scene
-|   +-- <oam_id>_tiles.gpkg
+|   +-- <Country_city_oam_id>_tiles.gpkg
 |
 +-- dataset/                   <- YOLO dataset for training
 |   +-- train/  waste/  background/
